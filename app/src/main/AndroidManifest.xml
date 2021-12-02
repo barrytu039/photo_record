@@ -2,15 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.barrytu.photorecord">
-    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-feature
-        android:name="android.hardware.camera.any"
-        android:required="true" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-feature android:name="android.hardware.camera" />
     <uses-feature
         android:name="android.hardware.camera.autofocus"
-        android:required="false" />
+        android:required="true" />
+
     <queries>
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE" />
@@ -18,14 +19,21 @@
     </queries>
 
     <application
+        android:name=".PhotoRecordApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.PhotoRecord"
         tools:ignore="AllowBackup">
+        <activity
+            android:name=".CameraActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GalleryActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,16 +44,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.barrytu.photorecord.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_path" />
         </provider>
-
     </application>
 
 </manifest>
