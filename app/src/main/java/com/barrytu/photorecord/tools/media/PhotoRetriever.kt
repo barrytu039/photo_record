@@ -1,4 +1,4 @@
-package com.barrytu.photorecord.tools
+package com.barrytu.photorecord.tools.media
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver

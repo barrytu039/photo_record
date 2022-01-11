@@ -1,4 +1,4 @@
-package com.barrytu.photorecord.tools
+package com.barrytu.photorecord.tools.media
 
 import androidx.lifecycle.MutableLiveData
 import com.barrytu.mediastoreretriever.MediaEntity
