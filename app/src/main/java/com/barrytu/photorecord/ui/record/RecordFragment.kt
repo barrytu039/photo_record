@@ -2,7 +2,6 @@ package com.barrytu.photorecord.ui.record
 
 import android.Manifest
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,15 +12,13 @@ import com.barrytu.photorecord.tools.SingleClickListener
 import com.barrytu.photorecord.databinding.FragmentRecordBinding
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.barrytu.photorecord.ui.camera.CameraActivity
 import com.barrytu.photorecord.ui.gallery.GalleryActivity
 import com.barrytu.photorecord.MediaBottomSheetDialogFragment
 
 const val PERMISSION_REQ_CODE_READ_EXTERNAL_STORAGE = 1001
-const val PERMISSION_REQ_CODE_CAMERA = 1002
-const val INTENT_REQ_CODE_CAMERA = 1003
 
 class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomSheetInterface {
 
@@ -38,7 +35,7 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
         savedInstanceState: Bundle?
     ): View {
         recordViewModel =
-            ViewModelProvider(this).get(RecordViewModel::class.java)
+            ViewModelProvider(this)[RecordViewModel::class.java]
 
         _binding = FragmentRecordBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -59,10 +56,15 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
         return root
     }
 
+
+    private val cameraResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+
+    }
+
     private fun onPhotoAddClicked() {
         activity?.let { ac ->
             val cameraIntent = Intent(ac, CameraActivity::class.java)
-            startActivity(cameraIntent)
+            cameraResultLauncher.launch(cameraIntent)
         }
     }
 
@@ -77,7 +79,7 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
             val permissions = arrayOf(
                 Manifest.permission.CAMERA
             )
-            ActivityCompat.requestPermissions(requireActivity(), permissions, PERMISSION_REQ_CODE_CAMERA)
+            cameraPermissionReqLauncher.launch(permissions)
         }
     }
 
@@ -91,34 +93,37 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             )
-            ActivityCompat.requestPermissions(requireActivity(), permissions, PERMISSION_REQ_CODE_READ_EXTERNAL_STORAGE)
+            storagePermissionReqLauncher.launch(
+                permissions
+            )
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == INTENT_REQ_CODE_CAMERA) {
-            data?.let {
-                it.data?.let {uri ->
-                    Log.e("data::", uri.toString())
+    private val cameraPermissionReqLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        var isAllPermissionGranted = true
+        for (i in it.keys) {
+            it[i]?.let { isGranted ->
+                if (!isGranted) {
+                    isAllPermissionGranted = false
                 }
             }
         }
+        if (isAllPermissionGranted) {
+            onCameraMediaClick()
+        }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            PERMISSION_REQ_CODE_CAMERA -> {
-                Log.e("data::", "camera")
+    private val storagePermissionReqLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        var isAllPermissionGranted = true
+        for (i in it.keys) {
+            it[i]?.let { isGranted ->
+                if (!isGranted) {
+                    isAllPermissionGranted = false
+                }
             }
-            PERMISSION_REQ_CODE_READ_EXTERNAL_STORAGE -> {
-                Log.e("data::", "storage")
-            }
+        }
+        if (isAllPermissionGranted) {
+            onPhotoAddClicked()
         }
     }
 
