@@ -1,4 +1,4 @@
-package com.barrytu.photorecord
+package com.barrytu.photorecord.ui.camera
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -22,6 +22,7 @@ import java.util.concurrent.Executors
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageCapture
 import androidx.core.net.toFile
+import com.barrytu.photorecord.R
 
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
@@ -38,7 +39,8 @@ class CameraActivity : AppCompatActivity() {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
         }
 
         // Set up the listener for take photo button
@@ -73,7 +75,8 @@ class CameraActivity : AppCompatActivity() {
 
         val photoFile = File(
             outputDirectory,
-            SimpleDateFormat(FILENAME_FORMAT, Locale.TAIWAN
+            SimpleDateFormat(
+                FILENAME_FORMAT, Locale.TAIWAN
             ).format(System.currentTimeMillis()) + ".jpg")
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
@@ -107,7 +110,7 @@ class CameraActivity : AppCompatActivity() {
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
-        cameraProviderFuture.addListener(Runnable {
+        cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 

@@ -1,4 +1,4 @@
-package com.barrytu.photorecord
+package com.barrytu.photorecord.ui.camera
 
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy

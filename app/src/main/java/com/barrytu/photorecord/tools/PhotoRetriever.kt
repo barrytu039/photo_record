@@ -1,13 +1,13 @@
-package com.barrytu.mediastoreretriever
+package com.barrytu.photorecord.tools
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
-import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.content.FileProvider
+import com.barrytu.mediastoreretriever.MediaEntity
 import com.barrytu.photorecord.PhotoRecordApplication
 import com.barrytu.photorecord.R
 import java.io.File

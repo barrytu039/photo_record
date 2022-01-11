@@ -1,16 +1,17 @@
-package com.barrytu.photorecord
+package com.barrytu.photorecord.ui.gallery
 
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.barrytu.photorecord.MediaAdapter
+import com.barrytu.photorecord.PhotoRecordApplication
 import com.barrytu.photorecord.databinding.ActivityGalleryBinding
 import com.barrytu.photorecord.ui.record.PERMISSION_REQ_CODE_READ_EXTERNAL_STORAGE
 import kotlinx.coroutines.launch
@@ -30,11 +31,8 @@ class GalleryActivity : AppCompatActivity(), MediaAdapter.MediaItemInterface {
         loadMediaItem()
         PhotoRecordApplication.mediaRetriever.mediaMutableLiveData.observe(this) {
             if (it.isNullOrEmpty()) {
-
+                // todo: handle empty state
             } else {
-                it.onEach { m ->
-                    Log.e("uri::", m.uri.path?:" empty")
-                }
                 mediaAdapter.setDataSet(it)
             }
         }

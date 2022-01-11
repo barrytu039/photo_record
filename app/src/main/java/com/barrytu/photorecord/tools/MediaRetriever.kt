@@ -1,6 +1,7 @@
-package com.barrytu.mediastoreretriever
+package com.barrytu.photorecord.tools
 
 import androidx.lifecycle.MutableLiveData
+import com.barrytu.mediastoreretriever.MediaEntity
 import com.barrytu.photorecord.PhotoRecordApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

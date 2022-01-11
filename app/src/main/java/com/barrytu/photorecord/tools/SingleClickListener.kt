@@ -1,4 +1,4 @@
-package com.barrytu.photorecord
+package com.barrytu.photorecord.tools
 
 import android.view.View
 
@@ -11,7 +11,7 @@ abstract class SingleClickListener : View.OnClickListener {
     override fun onClick(view: View?) {
         onSingleClick(view)
         view?.isEnabled = false
-        view?.postDelayed(Runnable { view?.isEnabled = true }, 1000)
+        view?.postDelayed({ view.isEnabled = true }, 1000)
     }
 
     abstract fun onSingleClick(view: View?)

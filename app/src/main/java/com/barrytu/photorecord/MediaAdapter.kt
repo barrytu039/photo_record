@@ -1,6 +1,6 @@
 package com.barrytu.photorecord
 
-import android.net.Uri
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,13 +8,12 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.barrytu.mediastoreretriever.MediaEntity
 import com.bumptech.glide.Glide
-import android.provider.MediaStore
-import androidx.loader.content.CursorLoader
 
 class MediaAdapter(val mediaItemInterface: MediaItemInterface) : RecyclerView.Adapter<MediaAdapter.MediaViewHolder>() {
 
     val mediaItems = mutableListOf<MediaEntity>()
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setDataSet(dataSet : List<MediaEntity>) {
         mediaItems.clear()
         mediaItems.addAll(dataSet)

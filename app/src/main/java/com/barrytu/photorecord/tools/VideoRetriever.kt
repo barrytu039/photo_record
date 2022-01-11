@@ -1,10 +1,11 @@
-package com.barrytu.mediastoreretriever
+package com.barrytu.photorecord.tools
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.os.Build
 import android.provider.MediaStore
+import com.barrytu.mediastoreretriever.MediaEntity
 
 class VideoRetriever(private val contentResolver: ContentResolver) {
 

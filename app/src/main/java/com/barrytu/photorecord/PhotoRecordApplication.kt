@@ -2,7 +2,7 @@ package com.barrytu.photorecord
 
 import android.app.Application
 import android.content.Context
-import com.barrytu.mediastoreretriever.MediaRetriever
+import com.barrytu.photorecord.tools.MediaRetriever
 import dagger.hilt.android.HiltAndroidApp
 
 
