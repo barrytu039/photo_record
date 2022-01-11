@@ -3,6 +3,7 @@ package com.barrytu.mediastoreretriever
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.os.Build
 import android.provider.MediaStore
 
 class VideoRetriever(private val contentResolver: ContentResolver) {
@@ -12,7 +13,7 @@ class VideoRetriever(private val contentResolver: ContentResolver) {
 
         val uriMutableList = mutableListOf<MediaEntity>()
 
-        val uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        val uri = collection
 
         val columns = arrayOf(
                 MediaStore.Video.Media._ID,
@@ -56,5 +57,10 @@ class VideoRetriever(private val contentResolver: ContentResolver) {
         }
         return uriMutableList
     }
-
+    private val collection =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        }
 }

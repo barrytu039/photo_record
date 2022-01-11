@@ -10,20 +10,16 @@ class MediaRetriever {
 
     private var photoRetriever : PhotoRetriever = PhotoRetriever(PhotoRecordApplication.getAppContext().contentResolver)
 
-    private var videoRetriever : VideoRetriever
+    private var videoRetriever : VideoRetriever = VideoRetriever(PhotoRecordApplication.getAppContext().contentResolver)
 
     val mediaMutableLiveData : MutableLiveData<List<MediaEntity>> = MutableLiveData()
-
-    init {
-        videoRetriever = VideoRetriever(PhotoRecordApplication.getAppContext().contentResolver)
-    }
 
     suspend fun scanMediaItem() = withContext(Dispatchers.IO) {
         val photoUris = async { photoRetriever.scanItem() }
         val videoUris = async { videoRetriever.scanItem() }
-        val appMediaUris = async { photoRetriever.scanAppDir() }
+//        val appMediaUris = async { photoRetriever.scanAppDir() }
         val mediaUris = mutableListOf<MediaEntity>()
-        mediaUris.addAll(appMediaUris.await())
+//        mediaUris.addAll(appMediaUris.await())
         mediaUris.addAll(photoUris.await())
         mediaUris.addAll(videoUris.await())
         mediaMutableLiveData.postValue(mediaUris)

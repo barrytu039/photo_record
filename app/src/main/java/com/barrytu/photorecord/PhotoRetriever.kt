@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.content.FileProvider
@@ -18,7 +19,7 @@ class PhotoRetriever(private val contentResolver: ContentResolver) {
 
         val uriMutableList = mutableListOf<MediaEntity>()
 
-        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val uri = collection
 
         val columns = arrayOf(
             MediaStore.Images.Media._ID,
@@ -56,6 +57,7 @@ class PhotoRetriever(private val contentResolver: ContentResolver) {
                 val mimeType        = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.MIME_TYPE))
                 val orientation     = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media.ORIENTATION))
                 val imageUri        = ContentUris.withAppendedId(uri, id)
+                Log.e("data::", id.toString())
                 uriMutableList.add(MediaEntity(imageUri, id, name, mimeType, modifierTime, addedTime))
             } while (cursor.moveToNext())
             cursor.close()
@@ -124,4 +126,11 @@ class PhotoRetriever(private val contentResolver: ContentResolver) {
         return if (mediaDir != null && mediaDir.exists())
             mediaDir else PhotoRecordApplication.getAppContext().filesDir
     }
+
+    private val collection =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
 }

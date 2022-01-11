@@ -1,14 +1,13 @@
 package com.barrytu.photorecord
 
 import android.Manifest
-import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.media.MediaScannerConnection
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -21,11 +20,8 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import androidx.camera.core.ImageCaptureException
-
 import androidx.camera.core.ImageCapture
-
-
-
+import androidx.core.net.toFile
 
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
@@ -74,24 +70,11 @@ class CameraActivity : AppCompatActivity() {
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
-        val rootDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Photo Record")
 
-        val imageFile = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}" + "/Photo Record", SimpleDateFormat(FILENAME_FORMAT, Locale.TAIWAN
-        ).format(System.currentTimeMillis()) + ".jpg")
-
-        val contentValues = ContentValues()
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, imageFile.name);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
-        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM);
-        val contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val uri = contentResolver.insert(contentUri, contentValues)
-        // Create time-stamped output file to hold the image
         val photoFile = File(
             outputDirectory,
             SimpleDateFormat(FILENAME_FORMAT, Locale.TAIWAN
             ).format(System.currentTimeMillis()) + ".jpg")
-
-//        val outputOptions = ImageCapture.OutputFileOptions.Builder(contentResolver, uri!!, contentValues).build()
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
@@ -104,10 +87,19 @@ class CameraActivity : AppCompatActivity() {
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
+                    val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
                     val msg = "Photo capture succeeded: ${savedUri.path}"
                     Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                     Log.d(TAG, msg)
+                    val mimeType = MimeTypeMap.getSingleton()
+                        .getMimeTypeFromExtension(savedUri.toFile().extension)
+                    MediaScannerConnection.scanFile(
+                        this@CameraActivity.applicationContext,
+                        arrayOf(savedUri.toFile().absolutePath),
+                        arrayOf(mimeType)
+                    ) { _, uri ->
+                        Log.e("uri path::", "Image capture scanned into media store: $uri")
+                    }
                 }
             })
     }
