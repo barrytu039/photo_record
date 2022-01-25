@@ -13,7 +13,6 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.android.synthetic.main.activity_camera.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,16 +22,21 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageCapture
 import androidx.core.net.toFile
 import com.barrytu.photorecord.R
+import com.barrytu.photorecord.databinding.ActivityCameraBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class CameraActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
 
     private lateinit var outputDirectory: File
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var viewBind :ActivityCameraBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera)
+        viewBind = ActivityCameraBinding.inflate(layoutInflater)
+        setContentView(viewBind.root)
 
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -44,7 +48,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         // Set up the listener for take photo button
-        camera_capture_button.setOnClickListener { takePhoto() }
+        viewBind.cameraCaptureButton.setOnClickListener { takePhoto() }
 
         outputDirectory = getOutputDirectory()
 
@@ -118,7 +122,7 @@ class CameraActivity : AppCompatActivity() {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                    it.setSurfaceProvider(viewBind.viewFinder.surfaceProvider)
                 }
 
             imageCapture = ImageCapture.Builder()

@@ -12,14 +12,25 @@ import com.barrytu.photorecord.tools.SingleClickListener
 import com.barrytu.photorecord.databinding.FragmentRecordBinding
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import com.barrytu.photorecord.ui.camera.CameraActivity
 import com.barrytu.photorecord.ui.gallery.GalleryActivity
 import com.barrytu.photorecord.MediaBottomSheetDialogFragment
+import com.barrytu.photorecord.PhotoRecordApplication
+import com.barrytu.photorecord.db.photorecord.PhotoRecordEntity
+import com.bumptech.glide.Glide
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 const val PERMISSION_REQ_CODE_READ_EXTERNAL_STORAGE = 1001
 
+@AndroidEntryPoint
 class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomSheetInterface {
 
     private lateinit var recordViewModel: RecordViewModel
@@ -54,6 +65,10 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
         })
 
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 
 
@@ -140,11 +155,27 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
         }
     }
 
+    private val galleryResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        it.data?.let { intent ->
+            intent.data?.let { uri ->
+                uri.path?.let { path ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        activity?.let { ac ->
+                            PhotoRecordApplication.photoRecordRepository.insert(
+                                PhotoRecordEntity(null, uri.toString(), System.currentTimeMillis(), 200)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     override fun onGalleryMediaClick() {
         if (haveStoragePermission()) {
             activity?.let {
                 val intent = Intent(it, GalleryActivity::class.java)
-                it.startActivity(intent)
+                galleryResultLauncher.launch(intent)
             }
         } else {
             requestStoragePermission()
