@@ -14,6 +14,6 @@ class HomeViewModel(application: Application, val courseRepository: PhotoRecordR
     }
     val text: LiveData<String> = _text
 
-    val photoRecordList = courseRepository.allPhotoRecords.asLiveData()
+    val photoRecordList = courseRepository.allPhotoRecords
 
 }

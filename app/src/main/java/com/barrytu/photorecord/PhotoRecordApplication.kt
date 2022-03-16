@@ -18,16 +18,12 @@ class PhotoRecordApplication : Application() {
         fun getAppContext() : Context {
             return appContext
         }
-        lateinit var photoRecordRepository : PhotoRecordRepository
     }
-
-    val database by lazy { PhotoRecordRoomDatabase.getDataBase(this) }
 
     override fun onCreate() {
         super.onCreate()
         appContext = applicationContext
         _mediaRetriever = MediaRetriever()
-        photoRecordRepository = PhotoRecordRepository(database.photoRecordDao())
     }
 
 }

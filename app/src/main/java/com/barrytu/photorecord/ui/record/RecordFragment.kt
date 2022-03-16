@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.barrytu.photorecord.tools.SingleClickListener
@@ -13,25 +12,27 @@ import com.barrytu.photorecord.databinding.FragmentRecordBinding
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Log
+import android.text.Editable
+import android.text.TextUtils
+import android.text.TextWatcher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import com.barrytu.photorecord.ui.camera.CameraActivity
 import com.barrytu.photorecord.ui.gallery.GalleryActivity
 import com.barrytu.photorecord.MediaBottomSheetDialogFragment
-import com.barrytu.photorecord.PhotoRecordApplication
-import com.barrytu.photorecord.db.photorecord.PhotoRecordEntity
+import com.barrytu.photorecord.R
 import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
+import javax.inject.Inject
 
 const val PERMISSION_REQ_CODE_READ_EXTERNAL_STORAGE = 1001
 
 @AndroidEntryPoint
-class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomSheetInterface {
+class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomSheetInterface, TextWatcher {
 
     private lateinit var recordViewModel: RecordViewModel
     private var _binding: FragmentRecordBinding? = null
@@ -40,23 +41,21 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
     // onDestroyView.
     private val binding get() = _binding!!
 
+    @Inject
+    lateinit var recordViewModelFactory: RecordViewModelFactory
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         recordViewModel =
-            ViewModelProvider(this)[RecordViewModel::class.java]
+            ViewModelProvider(this, recordViewModelFactory)[RecordViewModel::class.java]
 
         _binding = FragmentRecordBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textDashboard
-        recordViewModel.text.observe(viewLifecycleOwner, {
-            textView.text = it
-        })
-
-        binding.fragmentRecordAddPhotoFloatingActionButton.setOnClickListener(object : SingleClickListener(){
+        binding.fragmentRecordImageView.setOnClickListener(object : SingleClickListener(){
             override fun onSingleClick(view: View?) {
                 mediaBottomSheetDialogFragment?.dismiss()
                 mediaBottomSheetDialogFragment = MediaBottomSheetDialogFragment.newInstance(this@RecordFragment)
@@ -64,11 +63,55 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
             }
         })
 
+        binding.fragmentRecordCostEditTextView.addTextChangedListener(this)
+
         return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        recordViewModel.record.observe(viewLifecycleOwner, { record ->
+            record?.let {
+                activity?.let { ac ->
+                    record.photoUri?.let { uriString ->
+                        try {
+                            Glide.with(ac)
+                                .load(Uri.parse(uriString))
+                                .into(binding.fragmentRecordImageView)
+                        } catch (e : Exception) {
+                            e.printStackTrace()
+                        }
+                        binding.fragmentRecordImageView.setBackgroundColor(ContextCompat.getColor(ac, R.color.black))
+                    }?: run {
+                        try {
+                            Glide.with(ac)
+                                .load(R.drawable.ic_baseline_add_36)
+                                .into(binding.fragmentRecordImageView)
+                        } catch (e : Exception) {
+                            e.printStackTrace()
+                        }
+                        binding.fragmentRecordImageView.setBackgroundColor(ContextCompat.getColor(ac, R.color.white))
+                    }
+                    if (record.cost == null) {
+                        binding.fragmentRecordCostEditTextView.setText("")
+                    }
+                }
+                if (it.isRecordCompleted()) {
+                    binding.fragmentRecordAddButton.isEnabled = true
+                    binding.fragmentRecordAddButton.setOnClickListener(object : SingleClickListener() {
+                        override fun onSingleClick(view: View?) {
+                            recordViewModel.insertData()
+                        }
+                    })
+                } else {
+                    binding.fragmentRecordAddButton.isEnabled = false
+                    binding.fragmentRecordAddButton.setOnClickListener(null)
+                }
+            }?:run {
+                recordViewModel.setPhotoRecordImageUri(null)
+            }
+        })
     }
 
 
@@ -138,7 +181,7 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
             }
         }
         if (isAllPermissionGranted) {
-            onPhotoAddClicked()
+            onGalleryMediaClick()
         }
     }
 
@@ -159,11 +202,9 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
         it.data?.let { intent ->
             intent.data?.let { uri ->
                 uri.path?.let { path ->
-                    lifecycleScope.launch(Dispatchers.IO) {
+                    lifecycleScope.launch(Dispatchers.Main) {
                         activity?.let { ac ->
-                            PhotoRecordApplication.photoRecordRepository.insert(
-                                PhotoRecordEntity(null, uri.toString(), System.currentTimeMillis(), 200)
-                            )
+                            recordViewModel.setPhotoRecordImageUri(uri)
                         }
                     }
                 }
@@ -179,6 +220,26 @@ class RecordFragment : Fragment(), MediaBottomSheetDialogFragment.MediaBottomShe
             }
         } else {
             requestStoragePermission()
+        }
+    }
+
+    override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+    }
+
+    override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+    }
+
+    override fun afterTextChanged(p0: Editable?) {
+        p0?.let {
+            if (it.isNotEmpty()) {
+                if (TextUtils.isDigitsOnly(p0)) {
+                    recordViewModel.setPhotoRecordCost(p0.toString())
+                }
+            } else {
+                recordViewModel.setPhotoRecordCost(null)
+            }
         }
     }
 }

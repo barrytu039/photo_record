@@ -6,7 +6,9 @@ import com.barrytu.photorecord.PhotoRecordApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import javax.inject.Singleton
 
+@Singleton
 class MediaRetriever {
 
     private var photoRetriever : PhotoRetriever = PhotoRetriever(PhotoRecordApplication.getAppContext().contentResolver)
@@ -24,10 +26,6 @@ class MediaRetriever {
         mediaUris.addAll(photoUris.await())
         mediaUris.addAll(videoUris.await())
         mediaMutableLiveData.postValue(mediaUris)
-    }
-
-    suspend fun scanSpecificItem() = withContext(Dispatchers.IO) {
-
     }
 
 }

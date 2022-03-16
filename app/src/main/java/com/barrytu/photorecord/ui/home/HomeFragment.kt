@@ -8,10 +8,15 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.barrytu.photorecord.PhotoRecordApplication
 import com.barrytu.photorecord.databinding.FragmentHomeBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -24,6 +29,8 @@ class HomeFragment : Fragment() {
     private val viewBinding get() = _viewBinding!!
 
     private lateinit var photoRecordListAdapter: PhotoRecordListAdapter
+
+    @Inject lateinit var homeViewModelFactory: HomeViewModelFactory
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,14 +50,23 @@ class HomeFragment : Fragment() {
         }
         activity?.let { ac ->
             homeViewModel =
-                ViewModelProvider(this, HomeViewModelFactory(ac.application, PhotoRecordApplication.photoRecordRepository))[HomeViewModel::class.java]
-            homeViewModel.photoRecordList.observe(viewLifecycleOwner, {
-                photoRecordListAdapter.updatePhotoRecordDataSet(it)
-                it.onEach { p ->
+                ViewModelProvider(this, homeViewModelFactory)[HomeViewModel::class.java]
 
-                    Log.e("data::", p.toString())
+            lifecycleScope.launch(Dispatchers.IO) {
+                lifecycleScope.launchWhenStarted {
+                    homeViewModel.courseRepository.allPhotoRecords.collect {
+                        photoRecordListAdapter.updatePhotoRecordDataSet(it)
+                    }
                 }
-            })
+            }
+
+//            homeViewModel.photoRecordList.observe(viewLifecycleOwner, {
+//                photoRecordListAdapter.updatePhotoRecordDataSet(it)
+//                it.onEach { p ->
+//
+//                    Log.e("data::", p.toString())
+//                }
+//            })
         }
     }
 

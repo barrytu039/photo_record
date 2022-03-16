@@ -1,5 +1,6 @@
 package com.barrytu.photorecord.ui.home
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ class PhotoRecordListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val photoRecordDataSet = mutableListOf<PhotoRecordEntity>()
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updatePhotoRecordDataSet(newDataSet : List<PhotoRecordEntity>) {
         photoRecordDataSet.clear()
         photoRecordDataSet.addAll(newDataSet)
@@ -35,12 +37,13 @@ class PhotoRecordListAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     inner class PhotoRecordLargeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val viewBind : ItemPhotoRecordLargeBinding = ItemPhotoRecordLargeBinding.bind(itemView)
+        private val viewBind : ItemPhotoRecordLargeBinding = ItemPhotoRecordLargeBinding.bind(itemView)
 
         fun bindData(photoRecordEntity: PhotoRecordEntity) {
             Glide.with(itemView.context)
                 .load(Uri.parse(photoRecordEntity.photoUri))
                 .into(viewBind.itemPhotoRecordLargeImageView)
+            viewBind.itemPhotoRecordLargeCostTextView.text = itemView.context.resources.getString(R.string.currency_price, photoRecordEntity.cost.toString())
         }
     }
 }
